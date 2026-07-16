@@ -1,26 +1,13 @@
-/* ============================================
-   DANISH SHOAIB — Portfolio
-   Engineered by: Frontend Developer, UI Designer
-   Audited by: Security Engineer, Accessibility Auditor, SEO Specialist
-   ============================================ */
-
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ============================================
-     NAVBAR — Scroll Effect
-     ============================================ */
+  /* ============ NAVBAR ============ */
   const navbar = document.getElementById('navbar');
-
   window.addEventListener('scroll', () => {
-    const scrollY = window.scrollY;
-    navbar.classList.toggle('scrolled', scrollY > 50);
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
   }, { passive: true });
 
-  /* ============================================
-     SCROLL PROGRESS BAR
-     ============================================ */
+  /* ============ SCROLL PROGRESS ============ */
   const progressBar = document.getElementById('scrollProgress');
-
   window.addEventListener('scroll', () => {
     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
     const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -29,9 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     progressBar.setAttribute('aria-valuenow', Math.round(progress));
   }, { passive: true });
 
-  /* ============================================
-     MOBILE NAV — Hamburger Toggle
-     ============================================ */
+  /* ============ MOBILE NAV ============ */
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.getElementById('navLinks');
 
@@ -42,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
   });
 
-  /* Close nav on link click */
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', () => {
       navLinks.classList.remove('open');
@@ -52,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* Close nav on Escape key */
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && navLinks.classList.contains('open')) {
       navLinks.classList.remove('open');
@@ -63,12 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* ============================================
-     ACTIVE NAV LINK — Intersection Observer
-     ============================================ */
+  /* ============ ACTIVE NAV LINK ============ */
   const sections = document.querySelectorAll('.section, .hero');
   const navAnchors = document.querySelectorAll('.nav-link');
-
   const sectionObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -82,14 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }, { rootMargin: '-50% 0px -50% 0px' });
-
   sections.forEach(section => sectionObserver.observe(section));
 
-  /* ============================================
-     SCROLL ANIMATIONS — Fade In
-     ============================================ */
-  const fadeElements = document.querySelectorAll('.fade-in');
-
+  /* ============ SCROLL ANIMATIONS ============ */
+  const fadeElements = document.querySelectorAll('.fade-in, .scale-in');
   const fadeObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -98,12 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
   fadeElements.forEach(el => fadeObserver.observe(el));
 
-  /* ============================================
-     SMOOTH SCROLL — Nav Links
-     ============================================ */
+  /* ============ SMOOTH SCROLL ============ */
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', (e) => {
       e.preventDefault();
@@ -116,9 +89,150 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ============================================
-     CONTACT FORM — Validation & Security
-     ============================================ */
+  /* ============ 3D TILT EFFECT ============ */
+  const tiltCards = document.querySelectorAll('[data-tilt]');
+  if (tiltCards.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    tiltCards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -6;
+        const rotateY = ((x - centerX) / centerX) * 6;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+      });
+    });
+  }
+
+  /* ============ MAGNETIC BUTTONS ============ */
+  const magneticBtns = document.querySelectorAll('.glass-btn, .glass-btn-primary');
+  if (magneticBtns.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    magneticBtns.forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.setProperty('--mx', `${((x / rect.width) * 50) + 50}%`);
+        btn.style.setProperty('--my', `${((y / rect.height) * 50) + 50}%`);
+      });
+    });
+  }
+
+  /* ============ SKILL BAR ANIMATION ============ */
+  const skillFills = document.querySelectorAll('.skill-bar-fill');
+  if (skillFills.length) {
+    const skillObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const fill = entry.target;
+          const width = fill.getAttribute('data-width');
+          if (width) {
+            setTimeout(() => {
+              fill.style.width = width + '%';
+            }, 200);
+          }
+          skillObserver.unobserve(fill);
+        }
+      });
+    }, { threshold: 0.3 });
+    skillFills.forEach(fill => skillObserver.observe(fill));
+  }
+
+  /* ============ COUNTER ANIMATION ============ */
+  function animateCounter(el, target, duration) {
+    const start = performance.now();
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(eased * target);
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+
+  const counters = document.querySelectorAll('[data-counter]');
+  if (counters.length) {
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.getAttribute('data-counter'), 10);
+          animateCounter(el, target, 1200);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(c => counterObserver.observe(c));
+  }
+
+  /* ============ PARTICLE BACKGROUND ============ */
+  const particleContainer = document.querySelector('.hero');
+  if (particleContainer && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.3';
+    canvas.width = particleContainer.offsetWidth;
+    canvas.height = particleContainer.offsetHeight;
+    particleContainer.style.position = 'relative';
+    particleContainer.insertBefore(canvas, particleContainer.firstChild);
+
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const count = 50;
+
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        r: Math.random() * 2 + 1,
+        a: Math.random() * 0.5 + 0.1
+      });
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p, i) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(126, 187, 197, ${p.a})`;
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[j].x - p.x;
+          const dy = particles[j].y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(126, 187, 197, ${0.06 * (1 - dist / 120)})`;
+            ctx.stroke();
+          }
+        }
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    window.addEventListener('resize', () => {
+      canvas.width = particleContainer.offsetWidth;
+      canvas.height = particleContainer.offsetHeight;
+    }, { passive: true });
+  }
+
+  /* ============ CONTACT FORM ============ */
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
     const nameInput = document.getElementById('formName');
@@ -128,19 +242,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = document.getElementById('formSubmit');
     const inputs = [nameInput, emailInput, subjectInput, messageInput];
 
-    /* Sanitize input (XSS prevention) */
     function sanitize(str) {
       const div = document.createElement('div');
       div.textContent = str;
       return div.textContent;
     }
 
-    /* Validate email format */
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
-    /* Validate a single field */
     function validateField(input) {
       const errorSpan = input.parentElement.querySelector('.form-error');
       const value = input.value.trim();
@@ -179,13 +290,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    /* Set names for error messages */
     nameInput.name = 'Your Name';
     emailInput.name = 'Your Email';
     subjectInput.name = 'Subject';
     messageInput.name = 'Your Message';
 
-    /* Real-time validation on blur */
     inputs.forEach(input => {
       if (input) {
         input.addEventListener('blur', () => validateField(input));
@@ -195,11 +304,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    /* Form submit handler */
     contactForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      /* Validate all fields */
       let isValid = true;
       inputs.forEach(input => {
         if (input && !validateField(input)) isValid = false;
@@ -211,22 +318,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      /* Sanitize all inputs (security) */
-      const sanitizedName = sanitize(nameInput.value.trim());
-      const sanitizedEmail = sanitize(emailInput.value.trim());
-      const sanitizedSubject = sanitize(subjectInput.value.trim());
-      const sanitizedMessage = sanitize(messageInput.value.trim());
+      sanitize(nameInput.value.trim());
+      sanitize(emailInput.value.trim());
+      sanitize(subjectInput.value.trim());
+      sanitize(messageInput.value.trim());
 
-      /* Disable button and show success */
       submitBtn.textContent = 'Sending...';
       submitBtn.disabled = true;
 
-      /* Simulate send (replace with actual API call in production) */
       setTimeout(() => {
         submitBtn.textContent = 'Message Sent!';
         submitBtn.style.background = 'linear-gradient(135deg, rgba(81, 207, 102, 0.4), rgba(126, 187, 197, 0.4))';
 
-        /* Announce success to screen readers */
         const announcement = document.createElement('div');
         announcement.setAttribute('role', 'alert');
         announcement.setAttribute('aria-live', 'assertive');
@@ -253,15 +356,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ============================================
-     PARALLAX ORBS — Performance-optimized
-     ============================================ */
+  /* ============ PARALLAX ORBS ============ */
   const heroOrbs = document.querySelectorAll('.hero-orb');
   if (heroOrbs.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     let ticking = false;
     document.querySelector('.hero').addEventListener('mousemove', (e) => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           const { clientX, clientY } = e;
           const { innerWidth, innerHeight } = window;
           const xPercent = (clientX / innerWidth - 0.5) * 2;
@@ -277,18 +378,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  /* ============================================
-     DYNAMIC YEAR — Footer
-     ============================================ */
+  /* ============ DYNAMIC YEAR ============ */
   const footerYear = document.querySelector('.footer p');
   if (footerYear) {
-    const currentYear = new Date().getFullYear().toString();
-    footerYear.textContent = footerYear.textContent.replace(/2026/, currentYear);
+    footerYear.textContent = footerYear.textContent.replace(/2026/, new Date().getFullYear().toString());
   }
 
-  /* ============================================
-     LAZY LOAD — Deferred animations
-     ============================================ */
+  /* ============ LAZY LOAD ============ */
   if ('IntersectionObserver' in window) {
     const lazyElements = document.querySelectorAll('[data-lazy]');
     const lazyObserver = new IntersectionObserver((entries) => {
