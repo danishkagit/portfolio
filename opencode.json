@@ -1,0 +1,50 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "google/antigravity-claude-opus-4-6-thinking",
+  "agent": {
+    "build": {
+      "description": "Default coding agent — full tool access for development",
+      "mode": "primary",
+      "model": "google/antigravity-claude-sonnet-4-6",
+      "permission": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    },
+    "plan": {
+      "description": "Planning and analysis agent — reviews code, designs architecture, no file changes",
+      "mode": "primary",
+      "model": "google/antigravity-claude-opus-4-6-thinking",
+      "permission": {
+        "read": true,
+        "write": "ask",
+        "edit": "ask",
+        "bash": "ask"
+      }
+    },
+    "reviewer": {
+      "description": "Code review and security audit specialist",
+      "mode": "primary",
+      "model": "google/antigravity-claude-opus-4-6-thinking",
+      "permission": {
+        "read": true,
+        "write": "ask",
+        "edit": "ask",
+        "bash": "ask"
+      }
+    },
+    "deploy": {
+      "description": "Deployment and DevOps automation agent",
+      "mode": "primary",
+      "model": "google/antigravity-claude-sonnet-4-6",
+      "permission": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    }
+  }
+}
