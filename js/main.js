@@ -1,5 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  /* ============ TERMINAL THEME CSS ============ */
+  const terminalStyle = document.createElement('style');
+  terminalStyle.textContent = `
+    .text-terminal-green { color: var(--color-terminal-green); }
+    .comment-prefix { color: var(--color-terminal-green); opacity: 0.5; font-family: var(--font-mono); font-size: 0.85em; margin-right: 0.5rem; user-select: none; }
+    .terminal-prompt { color: var(--color-terminal-green); font-family: var(--font-mono); margin-right: 0.5rem; user-select: none; }
+    .hero-title.glitch {
+      animation: glitch 200ms ease;
+    }
+    @keyframes glitch {
+      0% { transform: translateX(0); text-shadow: none; }
+      20% { transform: translateX(-3px); text-shadow: 2px 0 var(--color-terminal-green), -2px 0 var(--color-neon-pink); }
+      40% { transform: translateX(3px); text-shadow: -2px 0 var(--color-terminal-green), 2px 0 var(--color-neon-pink); }
+      60% { transform: translateX(-2px); text-shadow: 1px 0 var(--color-terminal-green), -1px 0 var(--color-neon-pink); }
+      80% { transform: translateX(2px); text-shadow: -1px 0 var(--color-terminal-green), 1px 0 var(--color-neon-pink); }
+      100% { transform: translateX(0); text-shadow: none; }
+    }
+  `;
+  document.head.appendChild(terminalStyle);
+
   /* ============ NAVBAR ============ */
   const navbar = document.getElementById('navbar');
   window.addEventListener('scroll', () => {
@@ -232,6 +252,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
+  /* ============ MATRIX RAIN EFFECT ============ */
+  const heroSection = document.querySelector('.hero');
+  if (heroSection && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const matrixCanvas = document.createElement('canvas');
+    matrixCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.15';
+    matrixCanvas.width = heroSection.offsetWidth;
+    matrixCanvas.height = heroSection.offsetHeight;
+    heroSection.insertBefore(matrixCanvas, heroSection.firstChild);
+
+    const ctx = matrixCanvas.getContext('2d');
+    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF';
+    const fontSize = 14;
+    const columns = Math.min(Math.floor(matrixCanvas.width / fontSize), 40);
+    const drops = Array.from({ length: columns }, () => Math.random() * -100);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.06)';
+      ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+      ctx.fillStyle = 'rgba(0, 255, 65, 0.9)';
+      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+      requestAnimationFrame(drawMatrix);
+    }
+    drawMatrix();
+
+    window.addEventListener('resize', () => {
+      matrixCanvas.width = heroSection.offsetWidth;
+      matrixCanvas.height = heroSection.offsetHeight;
+    }, { passive: true });
+  }
+
   /* ============ CONTACT FORM ============ */
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
@@ -378,11 +439,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  /* ============ DYNAMIC YEAR ============ */
-  const footerYear = document.querySelector('.footer p');
-  if (footerYear) {
-    footerYear.textContent = footerYear.textContent.replace(/2026/, new Date().getFullYear().toString());
+  /* ============ GLITCH EFFECT ============ */
+  const glitchTitle = document.querySelector('.hero-title');
+  if (glitchTitle && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    function triggerGlitch() {
+      glitchTitle.classList.add('glitch');
+      setTimeout(() => {
+        glitchTitle.classList.remove('glitch');
+      }, 200);
+      const nextDelay = 4000 + Math.random() * 4000;
+      setTimeout(triggerGlitch, nextDelay);
+    }
+    const initialDelay = 4000 + Math.random() * 4000;
+    setTimeout(triggerGlitch, initialDelay);
   }
+
+  /* ============ FOOTER TYPING EFFECT ============ */
+  setTimeout(() => {
+    const typingEl = document.getElementById('footerTyping');
+    if (typingEl) {
+      const rawText = typingEl.getAttribute('data-text') || '';
+      const year = new Date().getFullYear().toString();
+      const text = rawText.replace('2026', year);
+      typingEl.textContent = '';
+      let i = 0;
+      const typeInterval = setInterval(() => {
+        if (i < text.length) {
+          typingEl.textContent += text[i];
+          i++;
+        } else {
+          clearInterval(typeInterval);
+        }
+      }, 60);
+    }
+  }, 1000);
 
   /* ============ LAZY LOAD ============ */
   if ('IntersectionObserver' in window) {
