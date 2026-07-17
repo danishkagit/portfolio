@@ -1050,6 +1050,43 @@ textarea.glass-input { resize: vertical; min-height: 120px; }
 .contact-form .btn-primary { width: 100%; }
 .contact-form .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
+/* ============ TOOLS / AFFILIATE STRIP ============ */
+.tools-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.tools-strip-label {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+.tools-badge {
+  padding: 0.25rem 0.65rem;
+  border-radius: 100px;
+  background: rgba(0, 255, 65, 0.05);
+  border: 1px solid rgba(0, 255, 65, 0.1);
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+.tools-badge:hover {
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--color-cyan);
+  border-color: rgba(0, 212, 255, 0.25);
+  transform: translateY(-2px);
+}
+.tools-affiliate-notice {
+  width: 100%;
+  text-align: center;
+  color: var(--color-text-dim);
+  font-size: 0.65rem;
+  margin-top: 0.25rem;
+}
+
 /* ============ FOOTER ============ */
 .footer {
   padding: 2rem 0;
