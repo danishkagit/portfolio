@@ -1,24 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ============ TERMINAL THEME CSS ============ */
-  const terminalStyle = document.createElement('style');
-  terminalStyle.textContent = `
-    .text-terminal-green { color: var(--color-terminal-green); }
-    .comment-prefix { color: var(--color-terminal-green); opacity: 0.5; font-family: var(--font-mono); font-size: 0.85em; margin-right: 0.5rem; user-select: none; }
-    .terminal-prompt { color: var(--color-terminal-green); font-family: var(--font-mono); margin-right: 0.5rem; user-select: none; }
-    .hero-title.glitch {
-      animation: glitch 200ms ease;
+  /* ============ MATRIX RAIN BACKGROUND ============ */
+  const matrixCanvas = document.getElementById('matrixCanvas');
+  if (matrixCanvas && !prefersReducedMotion) {
+    matrixCanvas.width = window.innerWidth;
+    matrixCanvas.height = window.innerHeight;
+    const ctx = matrixCanvas.getContext('2d');
+    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF';
+    const fontSize = 14;
+    const columns = Math.min(Math.floor(matrixCanvas.width / fontSize), 40);
+    const drops = Array.from({ length: columns }, () => Math.random() * -100);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+      ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      ctx.fillStyle = 'rgba(0, 255, 65, 0.85)';
+      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+      requestAnimationFrame(drawMatrix);
     }
-    @keyframes glitch {
-      0% { transform: translateX(0); text-shadow: none; }
-      20% { transform: translateX(-3px); text-shadow: 2px 0 var(--color-terminal-green), -2px 0 var(--color-neon-pink); }
-      40% { transform: translateX(3px); text-shadow: -2px 0 var(--color-terminal-green), 2px 0 var(--color-neon-pink); }
-      60% { transform: translateX(-2px); text-shadow: 1px 0 var(--color-terminal-green), -1px 0 var(--color-neon-pink); }
-      80% { transform: translateX(2px); text-shadow: -1px 0 var(--color-terminal-green), 1px 0 var(--color-neon-pink); }
-      100% { transform: translateX(0); text-shadow: none; }
-    }
-  `;
-  document.head.appendChild(terminalStyle);
+    drawMatrix();
+
+    window.addEventListener('resize', () => {
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+    }, { passive: true });
+  }
 
   /* ============ NAVBAR ============ */
   const navbar = document.getElementById('navbar');
@@ -85,11 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
   sections.forEach(section => sectionObserver.observe(section));
 
   /* ============ SCROLL ANIMATIONS ============ */
-  const fadeElements = document.querySelectorAll('.fade-in, .scale-in');
+  const fadeElements = document.querySelectorAll('.fade-in');
   const fadeObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
+        const delay = entry.target.dataset.delay || 0;
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, parseInt(delay));
         fadeObserver.unobserve(entry.target);
       }
     });
@@ -111,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ============ 3D TILT EFFECT ============ */
   const tiltCards = document.querySelectorAll('[data-tilt]');
-  if (tiltCards.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (tiltCards.length && !prefersReducedMotion) {
     tiltCards.forEach(card => {
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
@@ -119,26 +135,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const y = e.clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -6;
-        const rotateY = ((x - centerX) / centerX) * 6;
+        const rotateX = ((y - centerY) / centerY) * -5;
+        const rotateY = ((x - centerX) / centerX) * 5;
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
       });
       card.addEventListener('mouseleave', () => {
         card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
-      });
-    });
-  }
-
-  /* ============ MAGNETIC BUTTONS ============ */
-  const magneticBtns = document.querySelectorAll('.glass-btn, .glass-btn-primary');
-  if (magneticBtns.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    magneticBtns.forEach(btn => {
-      btn.addEventListener('mousemove', (e) => {
-        const rect = btn.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        btn.style.setProperty('--mx', `${((x / rect.width) * 50) + 50}%`);
-        btn.style.setProperty('--my', `${((y / rect.height) * 50) + 50}%`);
       });
     });
   }
@@ -152,9 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const fill = entry.target;
           const width = fill.getAttribute('data-width');
           if (width) {
-            setTimeout(() => {
-              fill.style.width = width + '%';
-            }, 200);
+            setTimeout(() => { fill.style.width = width + '%'; }, 200);
           }
           skillObserver.unobserve(fill);
         }
@@ -189,108 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, { threshold: 0.5 });
     counters.forEach(c => counterObserver.observe(c));
-  }
-
-  /* ============ PARTICLE BACKGROUND ============ */
-  const particleContainer = document.querySelector('.hero');
-  if (particleContainer && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const canvas = document.createElement('canvas');
-    canvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.3';
-    canvas.width = particleContainer.offsetWidth;
-    canvas.height = particleContainer.offsetHeight;
-    particleContainer.style.position = 'relative';
-    particleContainer.insertBefore(canvas, particleContainer.firstChild);
-
-    const ctx = canvas.getContext('2d');
-    const particles = [];
-    const count = 50;
-
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        r: Math.random() * 2 + 1,
-        a: Math.random() * 0.5 + 0.1
-      });
-    }
-
-    function drawParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(126, 187, 197, ${p.a})`;
-        ctx.fill();
-
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[j].x - p.x;
-          const dy = particles[j].y - p.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(126, 187, 197, ${0.06 * (1 - dist / 120)})`;
-            ctx.stroke();
-          }
-        }
-      });
-      requestAnimationFrame(drawParticles);
-    }
-    drawParticles();
-
-    window.addEventListener('resize', () => {
-      canvas.width = particleContainer.offsetWidth;
-      canvas.height = particleContainer.offsetHeight;
-    }, { passive: true });
-  }
-
-  /* ============ MATRIX RAIN EFFECT ============ */
-  const heroSection = document.querySelector('.hero');
-  if (heroSection && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const matrixCanvas = document.createElement('canvas');
-    matrixCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.15';
-    matrixCanvas.width = heroSection.offsetWidth;
-    matrixCanvas.height = heroSection.offsetHeight;
-    heroSection.insertBefore(matrixCanvas, heroSection.firstChild);
-
-    const ctx = matrixCanvas.getContext('2d');
-    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF';
-    const fontSize = 14;
-    const columns = Math.min(Math.floor(matrixCanvas.width / fontSize), 40);
-    const drops = Array.from({ length: columns }, () => Math.random() * -100);
-
-    function drawMatrix() {
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.06)';
-      ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-
-      ctx.fillStyle = 'rgba(0, 255, 65, 0.9)';
-      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
-
-      for (let i = 0; i < drops.length; i++) {
-        const char = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-      requestAnimationFrame(drawMatrix);
-    }
-    drawMatrix();
-
-    window.addEventListener('resize', () => {
-      matrixCanvas.width = heroSection.offsetWidth;
-      matrixCanvas.height = heroSection.offsetHeight;
-    }, { passive: true });
   }
 
   /* ============ CONTACT FORM ============ */
@@ -360,66 +258,32 @@ document.addEventListener('DOMContentLoaded', () => {
       if (input) {
         input.addEventListener('blur', () => validateField(input));
         input.addEventListener('input', function() {
-          if (this.classList.contains('error')) validateField(this);
+          if (this.classList.contains('error') || this.classList.contains('valid')) validateField(this);
         });
       }
     });
 
     contactForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-
       let isValid = true;
       inputs.forEach(input => {
         if (input && !validateField(input)) isValid = false;
       });
 
       if (!isValid) {
+        e.preventDefault();
         const firstError = contactForm.querySelector('.glass-input.error');
         if (firstError) firstError.focus();
         return;
       }
 
-      sanitize(nameInput.value.trim());
-      sanitize(emailInput.value.trim());
-      sanitize(subjectInput.value.trim());
-      sanitize(messageInput.value.trim());
-
       submitBtn.textContent = 'Sending...';
       submitBtn.disabled = true;
-
-      setTimeout(() => {
-        submitBtn.textContent = 'Message Sent!';
-        submitBtn.style.background = 'linear-gradient(135deg, rgba(81, 207, 102, 0.4), rgba(126, 187, 197, 0.4))';
-
-        const announcement = document.createElement('div');
-        announcement.setAttribute('role', 'alert');
-        announcement.setAttribute('aria-live', 'assertive');
-        announcement.textContent = 'Your message has been sent successfully!';
-        contactForm.appendChild(announcement);
-        setTimeout(() => announcement.remove(), 3000);
-
-        setTimeout(() => {
-          submitBtn.textContent = 'Send Message';
-          submitBtn.style.background = '';
-          submitBtn.disabled = false;
-          contactForm.reset();
-          inputs.forEach(input => {
-            input.classList.remove('valid', 'error');
-            input.setAttribute('aria-invalid', 'false');
-            const errorSpan = input.parentElement.querySelector('.form-error');
-            if (errorSpan) {
-              errorSpan.textContent = '';
-              errorSpan.classList.remove('visible');
-            }
-          });
-        }, 2500);
-      }, 1500);
     });
   }
 
   /* ============ PARALLAX ORBS ============ */
   const heroOrbs = document.querySelectorAll('.hero-orb');
-  if (heroOrbs.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (heroOrbs.length && !prefersReducedMotion) {
     let ticking = false;
     document.querySelector('.hero').addEventListener('mousemove', (e) => {
       if (!ticking) {
@@ -439,40 +303,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  /* ============ GLITCH EFFECT ============ */
-  const glitchTitle = document.querySelector('.hero-title');
-  if (glitchTitle && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  /* ============ GLITCH EFFECT ON HERO TITLE ============ */
+  const heroTitle = document.querySelector('.hero-title');
+  if (heroTitle && !prefersReducedMotion) {
     function triggerGlitch() {
-      glitchTitle.classList.add('glitch');
-      setTimeout(() => {
-        glitchTitle.classList.remove('glitch');
-      }, 200);
-      const nextDelay = 4000 + Math.random() * 4000;
+      heroTitle.style.animation = 'glitch 200ms ease';
+      setTimeout(() => { heroTitle.style.animation = ''; }, 200);
+      const nextDelay = 5000 + Math.random() * 5000;
       setTimeout(triggerGlitch, nextDelay);
     }
-    const initialDelay = 4000 + Math.random() * 4000;
+    const initialDelay = 5000 + Math.random() * 5000;
     setTimeout(triggerGlitch, initialDelay);
   }
 
-  /* ============ FOOTER TYPING EFFECT ============ */
-  setTimeout(() => {
-    const typingEl = document.getElementById('footerTyping');
-    if (typingEl) {
-      const rawText = typingEl.getAttribute('data-text') || '';
-      const year = new Date().getFullYear().toString();
-      const text = rawText.replace('2026', year);
-      typingEl.textContent = '';
-      let i = 0;
-      const typeInterval = setInterval(() => {
-        if (i < text.length) {
-          typingEl.textContent += text[i];
-          i++;
-        } else {
-          clearInterval(typeInterval);
-        }
-      }, 60);
+  /* ============ GLITCH KEYFRAMES ============ */
+  const glitchStyle = document.createElement('style');
+  glitchStyle.textContent = `
+    @keyframes glitch {
+      0% { transform: translateX(0); text-shadow: none; }
+      20% { transform: translateX(-3px); text-shadow: 2px 0 var(--color-terminal-green), -2px 0 var(--color-cyan); }
+      40% { transform: translateX(3px); text-shadow: -2px 0 var(--color-terminal-green), 2px 0 var(--color-cyan); }
+      60% { transform: translateX(-2px); text-shadow: 1px 0 var(--color-terminal-green), -1px 0 var(--color-neon-pink); }
+      80% { transform: translateX(2px); text-shadow: -1px 0 var(--color-terminal-green), 1px 0 var(--color-neon-pink); }
+      100% { transform: translateX(0); text-shadow: none; }
     }
-  }, 1000);
+  `;
+  document.head.appendChild(glitchStyle);
 
   /* ============ LAZY LOAD ============ */
   if ('IntersectionObserver' in window) {
@@ -489,5 +345,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     lazyElements.forEach(el => lazyObserver.observe(el));
   }
-
 });
