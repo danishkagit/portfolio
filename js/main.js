@@ -33,20 +33,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 
-  /* ============ NAVBAR ============ */
+  /* ============ MERGED SCROLL HANDLER (navbar + progress) ============ */
   const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 50);
-  }, { passive: true });
-
-  /* ============ SCROLL PROGRESS ============ */
   const progressBar = document.getElementById('scrollProgress');
-  window.addEventListener('scroll', () => {
+  let ticking = false;
+
+  function handleScroll() {
+    const scrollY = window.scrollY;
+    navbar.classList.toggle('scrolled', scrollY > 50);
+
     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
     const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
     const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
     progressBar.style.width = progress + '%';
     progressBar.setAttribute('aria-valuenow', Math.round(progress));
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(handleScroll);
+      ticking = true;
+    }
   }, { passive: true });
 
   /* ============ MOBILE NAV ============ */
@@ -163,34 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
     skillFills.forEach(fill => skillObserver.observe(fill));
   }
 
-  /* ============ COUNTER ANIMATION ============ */
-  function animateCounter(el, target, duration) {
-    const start = performance.now();
-    function update(now) {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.floor(eased * target);
-      if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
-  }
-
-  const counters = document.querySelectorAll('[data-counter]');
-  if (counters.length) {
-    const counterObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          const target = parseInt(el.getAttribute('data-counter'), 10);
-          animateCounter(el, target, 1200);
-          counterObserver.unobserve(el);
-        }
-      });
-    }, { threshold: 0.5 });
-    counters.forEach(c => counterObserver.observe(c));
-  }
-
   /* ============ CONTACT FORM ============ */
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
@@ -213,7 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function validateField(input) {
       const errorSpan = input.parentElement.querySelector('.form-error');
-      const value = input.value.trim();
+      const rawValue = input.value;
+      const value = sanitize(rawValue).trim();
       let error = '';
 
       if (input.required && !value) {
@@ -276,6 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      inputs.forEach(input => {
+        if (input) input.value = sanitize(input.value);
+      });
+
       submitBtn.textContent = 'Sending...';
       submitBtn.disabled = true;
     });
@@ -284,9 +270,9 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ============ PARALLAX ORBS ============ */
   const heroOrbs = document.querySelectorAll('.hero-orb');
   if (heroOrbs.length && !prefersReducedMotion) {
-    let ticking = false;
+    let orbTicking = false;
     document.querySelector('.hero').addEventListener('mousemove', (e) => {
-      if (!ticking) {
+      if (!orbTicking) {
         requestAnimationFrame(() => {
           const { clientX, clientY } = e;
           const { innerWidth, innerHeight } = window;
@@ -296,9 +282,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (heroOrbs[1]) {
             heroOrbs[1].style.transform = `translate(${xPercent * -15}px, ${yPercent * -10}px)`;
           }
-          ticking = false;
+          orbTicking = false;
         });
-        ticking = true;
+        orbTicking = true;
       }
     }, { passive: true });
   }
@@ -309,40 +295,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function triggerGlitch() {
       heroTitle.style.animation = 'glitch 200ms ease';
       setTimeout(() => { heroTitle.style.animation = ''; }, 200);
-      const nextDelay = 5000 + Math.random() * 5000;
+      const nextDelay = 8000 + Math.random() * 7000;
       setTimeout(triggerGlitch, nextDelay);
     }
-    const initialDelay = 5000 + Math.random() * 5000;
+    const initialDelay = 8000 + Math.random() * 7000;
     setTimeout(triggerGlitch, initialDelay);
   }
 
-  /* ============ GLITCH KEYFRAMES ============ */
-  const glitchStyle = document.createElement('style');
-  glitchStyle.textContent = `
-    @keyframes glitch {
-      0% { transform: translateX(0); text-shadow: none; }
-      20% { transform: translateX(-3px); text-shadow: 2px 0 var(--color-terminal-green), -2px 0 var(--color-cyan); }
-      40% { transform: translateX(3px); text-shadow: -2px 0 var(--color-terminal-green), 2px 0 var(--color-cyan); }
-      60% { transform: translateX(-2px); text-shadow: 1px 0 var(--color-terminal-green), -1px 0 var(--color-neon-pink); }
-      80% { transform: translateX(2px); text-shadow: -1px 0 var(--color-terminal-green), 1px 0 var(--color-neon-pink); }
-      100% { transform: translateX(0); text-shadow: none; }
-    }
-  `;
-  document.head.appendChild(glitchStyle);
-
-  /* ============ LAZY LOAD ============ */
-  if ('IntersectionObserver' in window) {
-    const lazyElements = document.querySelectorAll('[data-lazy]');
-    const lazyObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          if (el.dataset.src) el.src = el.dataset.src;
-          el.removeAttribute('data-lazy');
-          lazyObserver.unobserve(el);
-        }
-      });
-    });
-    lazyElements.forEach(el => lazyObserver.observe(el));
+  /* ============ CASE STUDIES (coming soon) ============ */
+  const container = document.getElementById('caseStudiesContainer');
+  if (container) {
+    container.innerHTML = `
+      <div class="case-study-coming-soon glass-card fade-in">
+        <div class="icon-box"><i class="fas fa-rocket"></i></div>
+        <h3>Case Studies Coming Soon</h3>
+        <p>I'm building real results for real clients. Detailed case studies will be published here once projects are complete. Stay tuned!</p>
+      </div>
+    `;
   }
 });

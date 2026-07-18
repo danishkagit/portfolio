@@ -3,5 +3,6 @@ node_modules/
 Thumbs.db
 *.log
 .env
-.opencode/
-opencode.json
+
+
+.vercel
